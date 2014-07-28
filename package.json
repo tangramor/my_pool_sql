@@ -6,7 +6,7 @@
   },
   "name": "my_pool_sql",
   "description": "A node.js module for mysql connection pool based on mariasql module.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "keywords": [
     "connection",
     "mysql",
