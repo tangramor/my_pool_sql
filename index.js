@@ -208,12 +208,11 @@ Pool.prototype._update = function() {
         .on('error', function(err){
           // Send the error to the callback function.
           connection.end();
-          console.log('[my_pool_sql] Query error, release the conneciton', err);
+          console.log('[my_pool_sql] Query error: ', err);
           pending.fn(err);
         })
         .on('end', function() {
-          //connection.end();
-          console.log('[my_pool_sql] Query done, release the conneciton');
+          console.log('[my_pool_sql] Query done');
         });
     }
     // Otherwise a connection may have to be established.
