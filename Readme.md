@@ -5,7 +5,7 @@ This pool module is based on the pool code of mysql-simple-pool: https://github.
 A connection pool has to be instantiated. You can provide *maximumNumberOfConnections* and *options*. Options are forwarded when a managed connection is established.
 
 	// Include the module.
-  var mypoolsql = require('my_pool_sql');
+	var mypoolsql = require('my_pool_sql');
 
 	// Instantiate the pool. Use a maximum of 100 connections.
 	app.pool = new mypoolsql(100, {
