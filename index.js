@@ -119,7 +119,7 @@ Pool.prototype._create = function() {
   if (this._currentNumberOfConnections + this._currentNumberOfConnectionsEstablishing < this.max) {
     // Create a connection.
     var connection = new mariasql();
-    console.log('Create new mariasql connection:', JSON.stringify(this.options));
+    console.log('[my_pool_sql] Create new mariasql connection');
     connection.connect(this.options);
     // Retrieve the pool instance.
     var pool = this;
@@ -156,7 +156,7 @@ Pool.prototype._create = function() {
         pool._update();
       })
       .on('end', function(){
-        console.log('Done with all results, deposed this connection...');
+        console.log('[my_pool_sql] Done with all results, deposed this connection...');
       });
     // Return true.
     return true;
@@ -200,12 +200,17 @@ Pool.prototype._update = function() {
         })
         .on('abort', function(){
           return;
+          connection.end();
         })
         .on('error', function(err){
           // Send the error to the callback function.
+          console.log('[my_pool_sql] Query error, release the conneciton', err);
           pending.fn(err);
+          connection.end();
         })
         .on('end', function() {
+          console.log('[my_pool_sql] Query done, release the conneciton');
+          connection.end();
           return;
         });
     }
