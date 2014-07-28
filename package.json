@@ -1,0 +1,26 @@
+{
+  "author": {
+    "name": "Wang Junhua",
+    "email": "tangramor@gmail.com",
+    "url": ""
+  },
+  "name": "my_pool_sql",
+  "description": "A node.js module for mysql connection pool based on mariasql module.",
+  "version": "0.0.1",
+  "repository": {
+    "url": ""
+  },
+  "main": "./index",
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {
+    "mariasql": "latest"
+  },
+  "devDependencies": {
+  },
+  "optionalDependencies": {},
+  "homepage": "",
+  "_id": "my_pool_sql@0.0.1",
+  "_from": "my_pool_sql@latest"
+}
