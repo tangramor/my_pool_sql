@@ -85,6 +85,7 @@ Pool.prototype.dispose = function() {
  */
 Pool.prototype.query = function(query, options, fn) {
   // Check if the pool has not been disposed of.
+  //console.log('[my_pool_sql] The pool size before query: ', this._connections.length);
   if (!this._disposed) {
     // Check if the options variable is a function.
     if (typeof options == 'function') {
@@ -175,20 +176,23 @@ Pool.prototype._update = function() {
   if (this._pending.length !== 0) {
     // Check if a connection is available.
     if (this._connections.length !== 0) {
+      //console.log('[my_pool_sql] Now pool size: ', this._connections.length)
       // Retrieve a connection.
       var connection = this._connections.pop();
       // Retrieve a _pending query.
       var pending = this._pending.pop();
 
+      //console.log('[my_pool_sql] pool size after pop: ', this._connections.length)
+
       // Execute the query using this handler to rebound the connection.
       connection.query(pending.query, pending.options)
         .on('result', function(result){
+          connection.end();
           var rows = [];
           result.on('row', function(row){
             rows.push(row);
           })
             .on('abort', function(){
-              return;
             })
             .on('error', function(err){
               // Send the error to the callback function.
@@ -199,19 +203,17 @@ Pool.prototype._update = function() {
             });
         })
         .on('abort', function(){
-          return;
           connection.end();
         })
         .on('error', function(err){
           // Send the error to the callback function.
+          connection.end();
           console.log('[my_pool_sql] Query error, release the conneciton', err);
           pending.fn(err);
-          connection.end();
         })
         .on('end', function() {
+          //connection.end();
           console.log('[my_pool_sql] Query done, release the conneciton');
-          connection.end();
-          return;
         });
     }
     // Otherwise a connection may have to be established.
