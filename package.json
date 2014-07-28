@@ -7,6 +7,12 @@
   "name": "my_pool_sql",
   "description": "A node.js module for mysql connection pool based on mariasql module.",
   "version": "0.0.1",
+  "keywords": [
+    "connection",
+    "mysql",
+    "mariasql",
+    "pool"
+  ],
   "repository": {
     "url": "https://github.com/tangramor/my_pool_sql"
   },
