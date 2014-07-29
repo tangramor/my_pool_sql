@@ -29,9 +29,7 @@ OR
 		console.log(results);
 	});
 
-It returns {query: result, rows: rows, info: info}, which 'rows' is an array of row objects
-
-Refer to mariasql node module for detail information: https://github.com/mscdex/node-mariasql
+The `results` contains `{query: result, rows: rows, info: info}`, which `rows` is an array of `row` objects. You may refer to mariasql node module for detail information: https://github.com/mscdex/node-mariasql
 
 ### Claiming a managed connection
 
