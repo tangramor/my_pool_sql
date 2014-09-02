@@ -6,7 +6,7 @@
   },
   "name": "my_pool_sql",
   "description": "A node.js module for mysql connection pool based on mariasql module.",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "keywords": [
     "connection",
     "mysql",
@@ -28,14 +28,9 @@
   "devDependencies": {},
   "optionalDependencies": {},
   "homepage": "https://github.com/tangramor/my_pool_sql",
-  "_id": "my_pool_sql@0.0.7",
   "_from": "my_pool_sql@latest",
   "bugs": {
     "url": "https://github.com/tangramor/my_pool_sql/issues"
-  },
-  "dist": {
-    "shasum": "49d75ba119e2e9ca1eb988b90ec4517bc451f98e",
-    "tarball": "http://registry.npmjs.org/my_pool_sql/-/my_pool_sql-0.0.7.tgz"
   },
   "_npmVersion": "1.3.24",
   "_npmUser": {
@@ -48,8 +43,5 @@
       "email": "tangramor@gmail.com"
     }
   ],
-  "directories": {},
-  "_shasum": "49d75ba119e2e9ca1eb988b90ec4517bc451f98e",
-  "_resolved": "https://registry.npmjs.org/my_pool_sql/-/my_pool_sql-0.0.7.tgz",
-  "readme": "ERROR: No README data found!"
+  "directories": {}
 }
