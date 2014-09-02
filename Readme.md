@@ -2,7 +2,7 @@ This pool module is based on the pool code of mysql-simple-pool: https://github.
 
 ### Instantiating a connection pool
 
-A connection pool has to be instantiated. You can provide *maximumNumberOfConnections* and *options*. Options are forwarded when a managed connection is established.
+A connection pool has to be instantiated. You can provide *maximumNumberOfConnections* and *options*. Options are forwarded when a managed connection is established. And *log* field in *options* is the switch to let this module print the logs to stdout.
 
 	// Include the module.
 	var mypoolsql = require('my_pool_sql');
@@ -12,7 +12,8 @@ A connection pool has to be instantiated. You can provide *maximumNumberOfConnec
 		host: 'localhost',
 		user: 'root',
 		password: 'root',
-		db: 'test'
+		db: 'test',
+		log: true
 	});
 
 ### Performing queries

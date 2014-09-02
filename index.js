@@ -1,5 +1,7 @@
 var mariasql = require('mariasql');
+var date_format = require('date-format');
 
+var iflog = false;
 /**
  * Represents the class managing a MySQL connection pool for node-mysql. The
  * connection pool accepts an options object which is passed to the node-mysql
@@ -16,6 +18,8 @@ function Pool(max, options) {
     this.max = max ? max : 100;
     // The options with which a connection is created.
     this.options = options ? options : {};
+    // If need to log the queries
+    iflog = this.options.log;
   }
   // Initialize private properties.
   if (true) {
@@ -120,7 +124,10 @@ Pool.prototype._create = function() {
   if (this._currentNumberOfConnections + this._currentNumberOfConnectionsEstablishing < this.max) {
     // Create a connection.
     var connection = new mariasql();
-    console.log('[my_pool_sql] Create new mariasql connection');
+    if(iflog) {
+      var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
+      console.log('[my_pool_sql]' + logtimestamp + ' Create new mariasql connection');
+    }
     connection.connect(this.options);
     // Retrieve the pool instance.
     var pool = this;
@@ -157,7 +164,10 @@ Pool.prototype._create = function() {
         pool._update();
       })
       .on('end', function(){
-        console.log('[my_pool_sql] Done with all results, deposed this connection...');
+        if(iflog) {
+          var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
+          console.log('[my_pool_sql]' + logtimestamp + ' Done with all results, deposed this connection...');
+        }
       });
     // Return true.
     return true;
@@ -199,6 +209,12 @@ Pool.prototype._update = function() {
               pending.fn(err, {query: result, rows: null, info: null});
             })
             .on('end', function(info){
+              console.log("Log or not: ", iflog);
+              if(iflog) {
+                var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
+                console.log('[my_pool_sql]' + logtimestamp + ' Query: ', result._parent._query);
+                console.log('[my_pool_sql]' + logtimestamp + ' Query Effects: ', info);
+              }
               pending.fn(null, {query: result, rows: rows, info: info});
             });
         })
@@ -208,11 +224,17 @@ Pool.prototype._update = function() {
         .on('error', function(err){
           // Send the error to the callback function.
           connection.end();
-          console.log('[my_pool_sql] Query error: ', err);
+          if(iflog) {
+            var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
+            console.log('[my_pool_sql]' + logtimestamp + ' Query error: ', err);
+          }
           pending.fn(err);
         })
         .on('end', function() {
-          console.log('[my_pool_sql] Query done');
+          if(iflog) {
+            var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
+            console.log('[my_pool_sql]' + logtimestamp + ' Query done');
+          }
         });
     }
     // Otherwise a connection may have to be established.
