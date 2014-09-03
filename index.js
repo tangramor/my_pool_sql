@@ -209,7 +209,6 @@ Pool.prototype._update = function() {
               pending.fn(err, {query: result, rows: null, info: null});
             })
             .on('end', function(info){
-              console.log("Log or not: ", iflog);
               if(iflog) {
                 var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
                 console.log('[my_pool_sql]' + logtimestamp + ' Query: ', result._parent._query);
