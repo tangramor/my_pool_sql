@@ -57,7 +57,7 @@ Pool.prototype.claim = function(fn) {
     // Otherwise a connection is available.
     else {
       // Retrieve a connection.
-      var connection = Pool._connections.pop();
+      var connection = this._connections.pop();
       // Send the connection to the callback function.
       fn(null, connection);
     }
