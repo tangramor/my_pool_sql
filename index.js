@@ -57,7 +57,7 @@ Pool.prototype.claim = function(fn) {
     // Otherwise a connection is available.
     else {
       // Retrieve a connection.
-      var connection = Pool._connections.pop();
+      var connection = this._connections.pop();
       // Send the connection to the callback function.
       fn(null, connection);
     }
@@ -194,47 +194,53 @@ Pool.prototype._update = function() {
 
       //console.log('[my_pool_sql] pool size after pop: ', this._connections.length)
 
-      // Execute the query using this handler to rebound the connection.
-      connection.query(pending.query, pending.options)
-        .on('result', function(result){
-          connection.end();
-          var rows = [];
-          result.on('row', function(row){
-            rows.push(row);
+      if(pending.claiming === true) {
+        pending.fn(null, connection);
+      }
+      else {
+        // Execute the query using this handler to rebound the connection.
+        connection.query(pending.query, pending.options)
+          .on('result', function(result){
+            connection.end();
+            var rows = [];
+            result.on('row', function(row){
+              rows.push(row);
+            })
+              .on('abort', function(){
+              })
+              .on('error', function(err){
+                // Send the error to the callback function.
+                pending.fn(err, {query: result, rows: null, info: null});
+              })
+              .on('end', function(info){
+                if(iflog) {
+                  var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
+                  console.log('[my_pool_sql]' + logtimestamp + ' Query: ', result._parent._query);
+                  console.log('[my_pool_sql]' + logtimestamp + ' Query Effects: ', info);
+                }
+                pending.fn(null, {query: result, rows: rows, info: info});
+              });
           })
-            .on('abort', function(){
-            })
-            .on('error', function(err){
-              // Send the error to the callback function.
-              pending.fn(err, {query: result, rows: null, info: null});
-            })
-            .on('end', function(info){
-              if(iflog) {
-                var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
-                console.log('[my_pool_sql]' + logtimestamp + ' Query: ', result._parent._query);
-                console.log('[my_pool_sql]' + logtimestamp + ' Query Effects: ', info);
-              }
-              pending.fn(null, {query: result, rows: rows, info: info});
-            });
-        })
-        .on('abort', function(){
-          connection.end();
-        })
-        .on('error', function(err){
-          // Send the error to the callback function.
-          connection.end();
-          if(iflog) {
-            var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
-            console.log('[my_pool_sql]' + logtimestamp + ' Query error: ', err);
-          }
-          pending.fn(err);
-        })
-        .on('end', function() {
-          if(iflog) {
-            var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
-            console.log('[my_pool_sql]' + logtimestamp + ' Query done');
-          }
-        });
+          .on('abort', function(){
+            connection.end();
+          })
+          .on('error', function(err){
+            // Send the error to the callback function.
+            connection.end();
+            if(iflog) {
+              var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
+              console.log('[my_pool_sql]' + logtimestamp + ' Query error: ', err);
+            }
+            pending.fn(err);
+          })
+          .on('end', function() {
+            if(iflog) {
+              var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
+              console.log('[my_pool_sql]' + logtimestamp + ' Query done');
+            }
+          });
+      }
+
     }
     // Otherwise a connection may have to be established.
     else {
