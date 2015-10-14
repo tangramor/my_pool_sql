@@ -22,7 +22,7 @@
     "node": "*"
   },
   "dependencies": {
-    "mariasql": "latest",
+    "mariasql": "~0.1.x",
     "date-format": "latest"
   },
   "devDependencies": {},
