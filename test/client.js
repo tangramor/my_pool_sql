@@ -1,10 +1,10 @@
-var mypoolsql = require("../index.test.js");
+var mypoolsql = require("../index.this.js");
 var Client = require("mariasql");
 
 var pool = new mypoolsql(100, {
 		host: 'localhost',
 		user: 'root',
-		password: 'root',
+		password: 'passw0rd',
 		db: 'mysql',
 		log: true
 	});
@@ -26,7 +26,31 @@ var pool = new mypoolsql(100, {
 pool.query('select * from user', function(err, result) {
                 if(err)
                     console.error("Error!", err);
-                console.log("query results: ", result.rows);
-                console.log("query host: ", result['info']);
+                // console.log("query results: ", result.rows);
+                console.log("user query info: ", result['info']);
+                console.log("Pool size:", pool._connections.length);
             });
+pool.query('select * from db', function(err, result) {
+                if(err)
+                    console.error("Error!", err);
+                // console.log("query results: ", result.rows);
+                console.log("db query info: ", result['info']);
+                console.log("Pool size:", pool._connections.length);
+            });
+pool.query('select * from event', function(err, result) {
+                if(err)
+                    console.error("Error!", err);
+                // console.log("query results: ", result.rows);
+                console.log("event query info: ", result['info']);
+                console.log("Pool size:", pool._connections.length);
+            });
+pool.query('select * from func', function(err, result) {
+                if(err)
+                    console.error("Error!", err);
+                // console.log("query results: ", result.rows);
+                console.log("func query info: ", result['info']);
+                console.log("Pool size:", pool._connections.length);
+            });
+
+
 // pool.dispose();

@@ -1,9 +1,9 @@
 var mariasql = require('mariasql');
 var date_format = require('date-format');
 
-var iflog = true;
+var iflog = false;
+var debug = true;
 
-pool = this;
 /**
  * Represents the class managing a MySQL connection pool for node-mysql. The
  * connection pool accepts an options object which is passed to the node-mysql
@@ -24,8 +24,20 @@ function Pool(max, options) {
     iflog = this.options.log;
   }
   // Initialize private properties.
-  if (true) {
-    // The current number of connections being established.
+  // if (true) {
+  //   // The current number of connections being established.
+  //   this._currentNumberOfConnectionsEstablishing = 0;
+  //   // The current number of _connections.
+  //   this._currentNumberOfConnections = 0;
+  //   // The established _connections.
+  //   this._connections = [];
+  //   // Indicates whether the pool has been disposed of.
+  //   this._disposed = false;
+  //   // The _pending operations.
+  //   this._pending = [];
+  // }
+
+  // The current number of connections being established.
     this._currentNumberOfConnectionsEstablishing = 0;
     // The current number of _connections.
     this._currentNumberOfConnections = 0;
@@ -35,18 +47,6 @@ function Pool(max, options) {
     this._disposed = false;
     // The _pending operations.
     this._pending = [];
-  }
-
-  // The current number of connections being established.
-    pool._currentNumberOfConnectionsEstablishing = 0;
-    // The current number of _connections.
-    pool._currentNumberOfConnections = 0;
-    // The established _connections.
-    pool._connections = [];
-    // Indicates whether the pool has been disposed of.
-    pool._disposed = false;
-    // The _pending operations.
-    pool._pending = [];
 }
 
 /**
@@ -79,7 +79,7 @@ Pool.prototype.claim = function(fn) {
 };
 
 /**
- * Dispose of the connection pool. Further queries are ignored, but all pending
+ * Dispose of the connection this. Further queries are ignored, but all pending
  * operations are handled. Once the pending operations have been finished, the
  * connections are removed.
  */
@@ -138,24 +138,29 @@ Pool.prototype.query = function(query, values, options, fn) {
 /**
  * Create a managed connection. A managed connection has an event handler to detect
  * connection errors and changes the termination behaviour. Once the managed connection
- * has been established, it is added to the connection pool.
+ * has been established, it is added to the connection this.
  *
  * @return Indicates whether a connection is being established.
  */
 Pool.prototype.makeClient = function(callback) {
   var client = new mariasql(this.options);
+
+  // if(iflog) console.log('[my_pool_sql][makeClient] new client: ', client);
   
-  // this._currentNumberOfConnectionsEstablishing++;
   this._currentNumberOfConnections++;
 
-  // client._end = client.end;
-  // var pool = this;
-  // client.end = function() {
-  //   // Update the connection pool and _pending queries.
-  //   pool._update();
-  // };
+  client._end = client.end;
+  var pool = this;
+  client.end = function() {
+    // Update the connection pool and _pending queries.
+    // this._update();
+    pool._connections.push(client);
+    pool._currentNumberOfConnectionsEstablishing++;
+    if(debug) console.log('[my_pool_sql][makeClient] don\'t end: ', client.connected);
+  };
 
   client.on('ready', function() {
+    if(debug) console.log('[my_pool_sql][makeClient] connection ready: ', client.connected);
     this._currentNumberOfConnectionsEstablishing--;
   })
     .on('error', function(err){
@@ -163,16 +168,14 @@ Pool.prototype.makeClient = function(callback) {
       // Check if the connection has been lost.
       if (err.fatal && err.code !== 'PROTOCOL_CONNECTION_LOST') {
         // Decrement the current number of _connections.
-        // pool._currentNumberOfConnections--;
+        // this._currentNumberOfConnections--;
         this._currentNumberOfConnections--;
       }
-      // Update the connection pool.
-      // pool._update();
-      pool._update();
+      // Update the connection this.
+      // this._update();
+      this._update();
     })
     .on('end', function(){
-      this._currentNumberOfConnectionsEstablishing++;
-
       if(iflog) {
         var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
         console.log('[my_pool_sql]' + logtimestamp + ' Done with all results, deposed this connection...');
@@ -190,13 +193,15 @@ Pool.prototype.makeClient = function(callback) {
 
   this._update();
 
-  if(iflog) console.log('[my_pool_sql][makeClient] is connection ready: ', client.connected);
+  // if(debug) console.log('[my_pool_sql][makeClient] is connection ready: ', client.connected);
   
   callback();
   
 }
 
 Pool.prototype._create = function() {
+  if(debug) console.log('[my_pool_sql][_create] do we need a new connection: ', this._currentNumberOfConnections + this._currentNumberOfConnectionsEstablishing);
+  
   // Check if a connection may be established.
   if (this._currentNumberOfConnections + this._currentNumberOfConnectionsEstablishing < this.max) {
     // Create a connection.
@@ -205,74 +210,6 @@ Pool.prototype._create = function() {
         var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
         console.log('[my_pool_sql]' + logtimestamp + ' Create new mariasql connection');
       }
-
-      // connection.connect(this.options);
-    //   console.log('[my_pool_sql] Created new mariasql connection: ' + JSON.stringify(connection));
-      // Retrieve the pool instance.
-    //   console.log('[my_pool_sql] This: ' + JSON.stringify(pool));
-      // var pool = this;
-      // Increment the current number of connections being established.
-      //pool._currentNumberOfConnectionsEstablishing++;
-        // Decrement the current number of connections being established.
-        // pool._currentNumberOfConnectionsEstablishing--;
-        // this._currentNumberOfConnectionsEstablishing--;
-
-        // Increment the current number of connections.
-        // pool._currentNumberOfConnections++;
-        // pool._currentNumberOfConnections++;
-
-        // Add the connection to the established _connections.
-          // pool._connections.push(this);
-        //   pool._connections.push(connection);
-          // Update the connection pool and _pending queries.
-          // pool._update();
-        //   pool._update();
-        
-        //pool._currentNumberOfConnections++;
-          // Save the terminate function in case we want to dispose.
-        //connection._end = connection.end;
-        // Change the behaviour of the termination of the connection.
-        //cid = date_format("yyyyMMddhhmmss", new Date());
-        // connection.end = function() {
-        //   // Add the connection to the established _connections.
-        //   //pool._connections.push({connection: connection, id: cid});
-        //   // Update the connection pool and _pending queries.
-        //   // pool._update();
-        //   pool._update();
-        // };
-        // // Rebound a managed connection.
-        // connection.end();
-      // Connect to the database.
-      // connection.on('ready', function() {
-      //   if(iflog) console.log('[my_pool_sql][_create] connection ' + cid + ' ready: ', connection.connected);
-      //   this._currentNumberOfConnectionsEstablishing--;
-          
-      //   // console.log('[my_pool_sql] After new mariasql connection: ' + connection.connected);
-      // })
-      //   .on('error', function(err){
-      //       console.error("Connection Error! ", err);
-      //     // Check if the connection has been lost.
-      //     if (err.fatal && err.code !== 'PROTOCOL_CONNECTION_LOST') {
-      //       // Decrement the current number of _connections.
-      //       // pool._currentNumberOfConnections--;
-      //       this._currentNumberOfConnections--;
-      //     }
-      //     // Update the connection pool.
-      //     // pool._update();
-      //     pool._update();
-      //   })
-      //   .on('end', function(){
-      //     if(iflog) {
-      //       var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
-      //       console.log('[my_pool_sql]' + logtimestamp + ' Done with all results, deposed this connection...');
-      //     }
-      //   })
-      //   .on('close', function() {
-      //     if(iflog) {
-      //       var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
-      //       console.log('[my_pool_sql]' + logtimestamp + ' This connection is closed');
-      //     }
-      //   });
 
       // Return true.
       return true;
@@ -284,16 +221,17 @@ Pool.prototype._create = function() {
 };
 
 /**
- * Update the connection pool. This method is called whenever a change in the
+ * Update the connection this. This method is called whenever a change in the
  * connection pool has occured, handles pending operations and establishes
  * connections.
  */
 Pool.prototype._update = function() {
   // Check if a _pending query is available.
-  if(iflog) console.log('[my_pool_sql][_update] query queue size: ', this._pending.length)
+  if(debug) console.log('[my_pool_sql][_update] current pool connections: ', this._currentNumberOfConnections + this._currentNumberOfConnectionsEstablishing);
+  if(debug) console.log('[my_pool_sql][_update] query queue size: ', this._pending.length)
   if (this._pending.length !== 0) {
     // Check if a connection is available.
-    if(iflog) console.log('[my_pool_sql][_update] connection pool size: ', this._connections.length);
+    if(debug) console.log('[my_pool_sql][_update] connection pool size: ', this._connections.length);
     if (this._connections.length !== 0) {
       //console.log('[my_pool_sql] Now pool size: ', this._connections.length)
       // Retrieve a connection.
@@ -311,78 +249,37 @@ Pool.prototype._update = function() {
       }
       else {
         // Execute the query using this handler to rebound the connection.
-        if(iflog) {
+        if(debug) {
           console.log('[my_pool_sql][_update] pending query: ', pending.query);
           console.log('[my_pool_sql][_update] pending callback: ', pending.fn);
           console.log('[my_pool_sql][_update] connection ready: ', connection.connected);
         }
         var query = connection.query(pending.query, pending.values, pending.options);//, pending.fn);
         query.on('result', function(res){
-                connection.end();
-                var rows = [];
-                var info = res.info;
-                res.on('data', function(row) {
-                    // console.dir(row);
-                    rows.push(row);
-                }).on('end', function() {
-                    if(iflog) console.log('Result set finished');
-                    pending.fn(null, {query: res, rows: rows, info: info});
-                });
-            }).on('error', function(err){
-                connection.end();
-                pending.fn(err);
-            }).on('end', function() {
-                if(iflog) console.log('No more result sets!');
-            });
-        // connection.query(pending.query, pending.fn);
-        // connection.query('select * from user;', function(err, rows){console.log("rows: ", rows);});
-          // .on('result', function(result){
-          //   console.log('[my_pool_sql] query to execute: ', pending.query);
-          //   connection.end();
-          //   var rows = [];
-          //   result.on('row', function(row){
-          //     rows.push(row);
-          //   })
-          //     .on('abort', function(){
-          //     })
-          //     .on('error', function(err){
-          //       // Send the error to the callback function.
-          //       pending.fn(err, {query: result, rows: null, info: null});
-          //     })
-          //     .on('end', function(info){
-          //       if(iflog) {
-          //         var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
-          //         console.log('[my_pool_sql]' + logtimestamp + ' Query: ', result._parent._query);
-          //         console.log('[my_pool_sql]' + logtimestamp + ' Query Effects: ', info);
-          //       }
-          //       pending.fn(null, {query: result, rows: rows, info: info});
-          //     });
-          // })
-          // .on('abort', function(){
-          //   connection.end();
-          // })
-          // .on('error', function(err){
-          //   // Send the error to the callback function.
-          //   connection.end();
-          //   if(iflog) {
-          //     var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
-          //     console.log('[my_pool_sql]' + logtimestamp + ' Query error: ', err);
-          //   }
-          //   pending.fn(err);
-          // })
-          // .on('end', function() {
-          //   if(iflog) {
-          //     var logtimestamp = date_format("[yyyy-MM-dd hh:mm:ss]", new Date());
-          //     console.log('[my_pool_sql]' + logtimestamp + ' Query done');
-          //   }
-          // });
+          connection.end();
+          var rows = [];
+          var info = res.info;
+          res.on('data', function(row) {
+              // console.dir(row);
+              rows.push(row);
+          }).on('end', function() {
+              if(debug) console.log('Result set finished');
+              pending.fn(null, {query: res, rows: rows, info: info});
+          });
+        }).on('error', function(err){
+          connection.end();
+          pending.fn(err);
+        }).on('end', function() {
+          connection.end();
+          if(debug) console.log('No more result sets!');
+        });
       }
 
     }
     // Otherwise a connection may have to be established.
     else {
       // Iterate until sufficient managed _connections are establishing.
-      if(iflog) console.log('[my_pool_sql][_update] _currentNumberOfConnectionsEstablishing size: ', this._currentNumberOfConnectionsEstablishing)
+      if(debug) console.log('[my_pool_sql][_update] _currentNumberOfConnectionsEstablishing size: ', this._currentNumberOfConnectionsEstablishing)
       while (this._currentNumberOfConnectionsEstablishing < this._pending.length) {
         // Create a managed connection.
         if (!this._create()) {
